@@ -1,0 +1,10 @@
+[package]
+name = "shipping"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+uuid = { workspace = true }
+common = { path = "../common" }
+sales_contracts = { path = "../sales_contracts" }

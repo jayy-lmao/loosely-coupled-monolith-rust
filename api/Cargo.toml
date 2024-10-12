@@ -1,0 +1,13 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+sales = { path = "../sales" }
+shipping = { path = "../shipping" }
+tracing-subscriber = "0.3.18"
+common = { path = "../common"}
+worker = { path = "../worker"}
+tokio = { workspace = true }

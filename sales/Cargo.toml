@@ -1,0 +1,12 @@
+[package]
+name = "sales"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+common = { path = "../common"}
+axum = { workspace = true }
+uuid = { workspace = true }
+sales_contracts = { path = "../sales_contracts"}
+tracing-subscriber = "0.3.18"
+tokio = { workspace = true }

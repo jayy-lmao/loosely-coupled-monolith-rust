@@ -1,0 +1,9 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-channel = { workspace = true  } 
+async-trait = { workspace = true  } 
+sales_contracts = { path = '../sales_contracts'}

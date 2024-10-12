@@ -1,0 +1,13 @@
+[package]
+name = "sales_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+common = { path = "../common"}
+axum = { workspace = true }
+uuid = { workspace = true }
+sales_contracts = { path = "../sales_contracts"}
+tokio = { workspace = true }
+sales = { path = "../sales" }
+tower = { version = "0.5.1" , features = ["util"]}
