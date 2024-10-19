@@ -3,6 +3,7 @@ use axum::{
     http::{Request, StatusCode},
 };
 use common::{Message, MessageBus};
+use sales_contracts::SalesContracts;
 use std::sync::Arc;
 use tower::ServiceExt;
 
@@ -35,11 +36,11 @@ async fn test_create_order() {
     assert_eq!(response_status, StatusCode::OK);
     assert!(body_str.contains("Order"));
     assert!(
-        matches!(message, Message::OrderPlaced(_)),
+        matches!(message, Message::Sales(SalesContracts::OrderPlaced(_))),
         "Received unexpected message type"
     );
     match message {
-        Message::OrderPlaced(order_placed) => {
+        Message::Sales(SalesContracts::OrderPlaced(order_placed)) => {
             assert!(body_str.contains(&order_placed.order_id.to_string()));
         }
     }

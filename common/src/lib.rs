@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use async_channel::{unbounded, Receiver, Sender};
-use sales_contracts::OrderPlaced;
+use sales_contracts::{OrderPlaced, SalesContracts};
 
 #[derive(Clone)]
 pub enum Message {
-    OrderPlaced(OrderPlaced),
+    Sales(SalesContracts),
 }
 
 #[async_trait::async_trait]
@@ -18,9 +18,9 @@ pub struct MessageBus {
     pub receiver: Arc<Receiver<Message>>,
 }
 
-impl From<OrderPlaced> for Message {
-    fn from(order_placed: OrderPlaced) -> Self {
-        Message::OrderPlaced(order_placed)
+impl From<SalesContracts> for Message {
+    fn from(sales_msg: SalesContracts) -> Self {
+        Message::Sales(sales_msg)
     }
 }
 
