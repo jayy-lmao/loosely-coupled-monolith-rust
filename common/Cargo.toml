@@ -6,4 +6,7 @@ edition = "2021"
 [dependencies]
 async-channel = { workspace = true  } 
 async-trait = { workspace = true  } 
+futures = "0.3.31"
 sales_contracts = { path = '../sales_contracts'}
+tokio = { workspace = true  } 
+

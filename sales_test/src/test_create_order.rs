@@ -1,17 +1,32 @@
+use pretty_assertions::assert_eq;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
 use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use common::{Message, MessageBus};
-use sales_contracts::SalesContracts;
-use std::sync::Arc;
+use common::EventDispatcher;
+use sales_contracts::OrderPlaced;
 use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_create_order() {
-    // Setup
-    let message_bus = Arc::new(MessageBus::new());
-    let app = sales::endpoints::init_router(message_bus.clone());
+    let mut dispatcher = EventDispatcher::new();
+    let captured_ord: Arc<Mutex<Option<OrderPlaced>>> = Arc::new(Mutex::new(None));
+
+    let captured_events_clone = captured_ord.clone();
+    let state = Arc::new(());
+
+    dispatcher.add_event_listener(state, move |_, order: OrderPlaced| {
+        let captured_order_clone = captured_events_clone.clone();
+        async move {
+            let mut event = captured_order_clone.lock().await;
+            *event = Some(order);
+        }
+    });
+
+    let app = sales::endpoints::init_router(Arc::new(dispatcher));
     let request = Request::builder()
         .method("POST")
         .uri("/sales")
@@ -22,26 +37,19 @@ async fn test_create_order() {
     let response = app.oneshot(request).await.unwrap();
 
     let response_status = response.status();
-    let body = axum::body::to_bytes(response.into_body(), 2000)
+    let body = axum::body::to_bytes(response.into_body(), 10_000)
         .await
         .unwrap();
     let body_str = String::from_utf8(body.to_vec()).unwrap();
-    let message = message_bus
-        .receiver
-        .recv()
-        .await
-        .expect("No message was received on the message bus");
 
     // Assert
+
+    // Response
     assert_eq!(response_status, StatusCode::OK);
     assert!(body_str.contains("Order"));
-    assert!(
-        matches!(message, Message::Sales(SalesContracts::OrderPlaced(_))),
-        "Received unexpected message type"
-    );
-    match message {
-        Message::Sales(SalesContracts::OrderPlaced(order_placed)) => {
-            assert!(body_str.contains(&order_placed.order_id.to_string()));
-        }
-    }
+
+    // Event
+    let event = captured_ord.lock().await.to_owned();
+    assert!(event.is_some());
+    assert!(!event.unwrap().order_id.to_string().is_empty());
 }

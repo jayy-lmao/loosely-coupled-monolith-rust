@@ -1,29 +1,29 @@
 use axum::Router;
 use std::sync::Arc;
-use worker::Worker;
 
-use common::MessageBus;
+use common::EventDispatcher;
+
+pub fn register_listeners(dispatcher: &mut EventDispatcher) {
+    shipping::configure_services::register_listeners(dispatcher);
+}
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    println!("Starting service on 0.0.0.0:8000");
-    let message_bus = Arc::new(MessageBus::new());
-    let mut worker = Worker::new(message_bus.clone());
+    let mut dispatcher = EventDispatcher::new();
 
-    worker.register(Box::new(shipping::message_handler::ShippingMessageHandler));
+    register_listeners(&mut dispatcher);
 
     let app = Router::new()
-        .merge(sales::endpoints::init_router(message_bus))
+        .merge(sales::endpoints::init_router(Arc::new(dispatcher)))
         .merge(shipping::endpoints::init_router());
 
     let listener = tokio::net::TcpListener::bind("localhost:8000")
         .await
-        .unwrap();
+        .expect("Could not start server");
 
-    tokio::spawn(async move {
-        worker.run().await;
-    });
-    axum::serve(listener, app).await.unwrap();
+    println!("Starting service on 0.0.0.0:8000");
+
+    axum::serve(listener, app).await.expect("Server crashed");
 }

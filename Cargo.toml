@@ -1,11 +1,11 @@
 [workspace]
 resolver = "2"
 
-members = [ "api", "common","sales","sales_test", "sales_contracts", "shipping", "worker"]
+members = [ "api", "common","sales","sales_test", "sales_contracts", "shipping" ]
 
 [workspace.dependencies]
-axum = "0.7.7"
+axum = { version = "0.7.7", features = ["macros"] }
 async-channel = "2.3.1"
 async-trait = "0.1.83"
 uuid = { version = "1.10", features = ["serde", "v4"] }
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.40.0", features = ["full" ] }

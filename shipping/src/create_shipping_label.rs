@@ -1,25 +1,14 @@
-use axum::async_trait;
-use common::MessageHandler;
+use crate::service::ShippingService;
 use sales_contracts::OrderPlaced;
+use std::sync::Arc;
 
-pub struct CreateShippingLabel;
-impl CreateShippingLabel {
-    #[must_use]
-    pub fn new() -> Self {
-        Self
-    }
-}
+pub async fn create_shipping_label(state: Arc<ShippingService>, order_placed: OrderPlaced) {
+    let mut count = state.count.lock().await;
+    *count += 1;
 
-impl Default for CreateShippingLabel {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[async_trait]
-impl MessageHandler<OrderPlaced> for CreateShippingLabel {
-    async fn handle(&self, order: OrderPlaced) -> Result<(), String> {
-        println!("placed order has been received: {}", order.order_id);
-        Ok(())
-    }
+    println!(
+        "placed order has been received: {order_id}. {count} orders in total",
+        order_id = order_placed.order_id,
+        count = count
+    );
 }
