@@ -9,3 +9,4 @@ uuid = { workspace = true }
 common = { path = "../common" }
 sales_contracts = { path = "../sales_contracts" }
 tokio = { workspace = true }
+chrono = { workspace = true }

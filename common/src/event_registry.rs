@@ -7,6 +7,8 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+use tokio::sync::RwLock;
+
 type Dependency = Arc<dyn Any + Send + Sync>;
 
 type EventHandler<E> =
@@ -17,17 +19,25 @@ struct EventListener<E> {
     handler: EventHandler<E>,
 }
 pub struct EventDispatcher {
-    handlers: HashMap<TypeId, Box<dyn Any + Send + Sync>>,
+    handlers: Arc<RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>>,
+}
+
+impl Clone for EventDispatcher {
+    fn clone(&self) -> Self {
+        Self {
+            handlers: Arc::clone(&self.handlers),
+        }
+    }
 }
 
 impl EventDispatcher {
     pub fn new() -> Self {
         EventDispatcher {
-            handlers: HashMap::new(),
+            handlers: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
-    pub fn add_event_listener<E, D, F, Fut>(&mut self, dependency: Arc<D>, handler: F)
+    pub async fn add_event_listener<E, D, F, Fut>(&self, dependency: Arc<D>, handler: F)
     where
         E: 'static + Send + Sync,
         D: 'static + Send + Sync,
@@ -37,8 +47,9 @@ impl EventDispatcher {
         let type_id = TypeId::of::<E>();
         println!("adding event listener: {:?}...", type_id);
 
-        let listeners = self
-            .handlers
+        let mut handlers = self.handlers.write().await;
+
+        let listeners = handlers
             .entry(type_id)
             .or_insert_with(|| Box::new(Vec::<EventListener<E>>::new()))
             .downcast_mut::<Vec<EventListener<E>>>()
@@ -64,6 +75,8 @@ impl EventDispatcher {
 
         if let Some(listeners) = self
             .handlers
+            .read()
+            .await
             .get(&type_id)
             .and_then(|box_any| box_any.downcast_ref::<Vec<EventListener<E>>>())
         {

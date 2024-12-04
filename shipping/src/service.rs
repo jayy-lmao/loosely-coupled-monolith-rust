@@ -1,19 +1,20 @@
+use common::EventDispatcher;
 use tokio::sync::Mutex;
 
+use crate::shipping_db_context::ShippingDbContext;
+
 pub struct ShippingService {
-    pub count: Mutex<u64>,
+    pub(crate) count: Mutex<u64>,
+    pub(crate) shipping_db_context: ShippingDbContext,
+    pub(crate) dispatcher: EventDispatcher,
 }
 
 impl ShippingService {
-    pub fn new() -> ShippingService {
-        ShippingService {
+    pub fn new(dispatcher: EventDispatcher) -> Self {
+        Self {
             count: Mutex::new(0),
+            shipping_db_context: ShippingDbContext::new(),
+            dispatcher,
         }
-    }
-}
-
-impl Default for ShippingService {
-    fn default() -> Self {
-        Self::new()
     }
 }

@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{order::OrderStatus, sales_db_context::SalesDbContext, Order};
 
-pub fn init_router(dispatcher: Arc<EventDispatcher>) -> Router {
+pub fn init_router(dispatcher: EventDispatcher) -> Router {
     let sales_db = SalesDbContext::new();
 
     Router::new()
@@ -16,7 +16,7 @@ pub fn init_router(dispatcher: Arc<EventDispatcher>) -> Router {
 }
 
 async fn create_order(
-    State((dispatcher, sales_db)): State<(Arc<EventDispatcher>, Arc<SalesDbContext>)>,
+    State((dispatcher, sales_db)): State<(EventDispatcher, Arc<SalesDbContext>)>,
 ) -> String {
     let order = Order {
         order_id: Uuid::new_v4(),

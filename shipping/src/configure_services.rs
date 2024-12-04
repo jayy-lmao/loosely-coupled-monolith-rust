@@ -1,8 +1,9 @@
-use crate::{create_shipping_label::create_shipping_label, service::ShippingService};
+use crate::{create_shipping_label::handle_order_placed, service::ShippingService};
 use common::EventDispatcher;
 use std::sync::Arc;
 
-pub fn register_listeners(dispatcher: &mut EventDispatcher) {
-    let state = Arc::new(ShippingService::new());
-    dispatcher.add_event_listener(state, create_shipping_label);
+pub async fn register_listeners(state: Arc<ShippingService>, dispatcher: EventDispatcher) {
+    dispatcher
+        .add_event_listener(state, handle_order_placed)
+        .await;
 }
