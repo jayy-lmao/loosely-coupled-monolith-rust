@@ -12,21 +12,23 @@ use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_create_order() {
-    let mut dispatcher = EventDispatcher::new();
+    let dispatcher = EventDispatcher::new();
     let captured_ord: Arc<Mutex<Option<OrderPlaced>>> = Arc::new(Mutex::new(None));
 
     let captured_events_clone = captured_ord.clone();
     let state = Arc::new(());
 
-    dispatcher.add_event_listener(state, move |_, order: OrderPlaced| {
-        let captured_order_clone = captured_events_clone.clone();
-        async move {
-            let mut event = captured_order_clone.lock().await;
-            *event = Some(order);
-        }
-    });
+    dispatcher
+        .add_event_listener(state, move |_, order: OrderPlaced| {
+            let captured_order_clone = captured_events_clone.clone();
+            async move {
+                let mut event = captured_order_clone.lock().await;
+                *event = Some(order);
+            }
+        })
+        .await;
 
-    let app = sales::endpoints::init_router(Arc::new(dispatcher));
+    let app = sales::endpoints::init_router(dispatcher);
     let request = Request::builder()
         .method("POST")
         .uri("/sales")
