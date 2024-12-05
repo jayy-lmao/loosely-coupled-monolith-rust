@@ -1,6 +1,4 @@
 use axum::Router;
-use shipping::service::ShippingService;
-use std::sync::Arc;
 
 use common::EventDispatcher;
 
@@ -10,8 +8,7 @@ async fn main() {
 
     let dispatcher = EventDispatcher::new();
 
-    let shipping_service = Arc::new(ShippingService::new(dispatcher.clone()));
-    shipping::configure_services::register_listeners(shipping_service, dispatcher.clone()).await;
+    shipping::configure_services::register_listeners(dispatcher.clone()).await;
 
     let app = Router::new()
         .merge(sales::endpoints::init_router(dispatcher))

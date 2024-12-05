@@ -5,8 +5,10 @@ edition = "2021"
 
 [dependencies]
 axum = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
 uuid = { workspace = true }
 common = { path = "../common" }
 sales_contracts = { path = "../sales_contracts" }
-tokio = { workspace = true }
-chrono = { workspace = true }
+shipping_contracts = { path = "../shipping_contracts" }
+billing_contracts = { path = "../billing_contracts" }

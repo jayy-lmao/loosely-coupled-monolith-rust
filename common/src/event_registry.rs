@@ -37,7 +37,7 @@ impl EventDispatcher {
         }
     }
 
-    pub async fn add_event_listener<E, D, F, Fut>(&self, dependency: Arc<D>, handler: F)
+    pub async fn add_event_listener<E, D, F, Fut>(&self, dependency: Arc<D>, handler: F) -> &Self
     where
         E: 'static + Send + Sync,
         D: 'static + Send + Sync,
@@ -67,6 +67,7 @@ impl EventDispatcher {
         });
 
         println!("Added");
+        self
     }
 
     pub async fn trigger<E: 'static + Send + Sync + Clone>(&self, event: E) {

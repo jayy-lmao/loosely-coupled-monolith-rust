@@ -156,6 +156,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "billing_contracts"
+version = "0.1.0"
+dependencies = [
+ "uuid",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -825,10 +832,19 @@ name = "shipping"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "billing_contracts",
  "chrono",
  "common",
  "sales_contracts",
+ "shipping_contracts",
  "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "shipping_contracts"
+version = "0.1.0"
+dependencies = [
  "uuid",
 ]
 

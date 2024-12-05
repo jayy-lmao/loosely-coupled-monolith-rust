@@ -1,37 +1,79 @@
 use crate::{service::ShippingService, shipping_label::ShippingLabel};
+use axum::async_trait;
+use billing_contracts::OrderBilled;
 use sales_contracts::OrderPlaced;
+use shipping_contracts::CreateShippingLabel;
 use std::sync::Arc;
 use uuid::Uuid;
 
-async fn process_order(state: Arc<ShippingService>, order_id: Uuid) {
-    let maybe_label = state.shipping_db_context.get_shipping_label(order_id).await;
-    if let Some(label) = maybe_label {
-        if label.order_placed && label.order_billed {
-            // Create shipping label
-        }
-    }
+#[async_trait]
+pub(crate) trait ShippingServiceHandlers {
+    async fn process_order(self, order_id: Uuid);
+    async fn handle_order_placed(self, order_placed: OrderPlaced);
+    async fn handle_order_billed(self, order_billed: OrderBilled);
 }
 
-pub(crate) async fn handle_order_placed(state: Arc<ShippingService>, order_placed: OrderPlaced) {
-    let mut count = state.count.lock().await;
-    *count += 1;
+#[async_trait]
+impl ShippingServiceHandlers for Arc<ShippingService> {
+    async fn process_order(self, order_id: Uuid) {
+        let maybe_label = self.shipping_db_context.get_shipping_label(order_id).await;
+        if let Some(label) = maybe_label {
+            let mut count = self.count.lock().await;
+            *count += 1;
 
-    let mut label = state
-        .shipping_db_context
-        .get_shipping_label(order_placed.order_id)
-        .await
-        .unwrap_or(ShippingLabel {
-            order_id: order_placed.order_id,
-            ..Default::default()
-        });
+            if label.order_placed && label.order_billed {
+                self.dispatcher
+                    .trigger(CreateShippingLabel { order_id })
+                    .await;
+            }
+        }
+    }
 
-    label.order_placed = true;
+    async fn handle_order_placed(self, order_placed: OrderPlaced) {
+        let order_id = order_placed.order_id;
 
-    state.shipping_db_context.upsert_shipping_label(label).await;
+        let mut label = self
+            .shipping_db_context
+            .get_shipping_label(order_id)
+            .await
+            .unwrap_or(ShippingLabel {
+                order_id,
+                ..Default::default()
+            });
 
-    println!(
-        "placed order has been received: {order_id}. {count} orders in total",
-        order_id = order_placed.order_id,
-        count = count
-    );
+        label.order_placed = true;
+
+        self.shipping_db_context.upsert_shipping_label(label).await;
+
+        self.clone().process_order(order_id).await;
+
+        println!(
+            "order has been placed: {order_id}. ",
+            order_id = order_placed.order_id,
+        );
+    }
+
+    async fn handle_order_billed(self, order_billed: OrderBilled) {
+        let order_id = order_billed.order_id;
+
+        let mut label = self
+            .shipping_db_context
+            .get_shipping_label(order_id)
+            .await
+            .unwrap_or(ShippingLabel {
+                order_id,
+                ..Default::default()
+            });
+
+        label.order_billed = true;
+
+        self.shipping_db_context.upsert_shipping_label(label).await;
+
+        self.clone().process_order(order_id).await;
+
+        println!(
+            "order has been billed: {order_id}. ",
+            order_id = order_billed.order_id,
+        );
+    }
 }

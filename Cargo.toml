@@ -1,7 +1,16 @@
 [workspace]
 resolver = "2"
 
-members = [ "api", "common","sales","sales_test", "sales_contracts", "shipping" ]
+members = [ 
+  "api",
+  "common",
+  "sales",
+  "sales_test",
+  "sales_contracts",
+  "shipping",
+  "shipping_contracts",
+  "billing_contracts",
+]
 
 [workspace.dependencies]
 axum = { version = "0.7.7", features = ["macros"] }
